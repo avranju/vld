@@ -447,10 +447,14 @@ LPVOID FindRealCode(LPVOID pCode)
                 if (VirtualProtect(addr, sizeof(LPVOID), PAGE_EXECUTE_READ, &old_protect_2))
                 {
                     result = *(LPVOID*)(addr);
-                    (void)VirtualProtect(addr, sizeof(LPVOID), old_protect_2, &old_protect_2);
+                    if (VirtualProtect(addr, sizeof(LPVOID), old_protect_2, &old_protect_2) == FALSE)
+                    {
+                        DbgTrace(L"FindRealCode: [3] VirtualProtect failed with %d\n", GetLastError());
+                    }
                 }
                 else
                 {
+                    DbgTrace(L"FindRealCode: [2] VirtualProtect failed with %d\n", GetLastError());
                     result = NULL;
                 }
 #else
@@ -461,10 +465,14 @@ LPVOID FindRealCode(LPVOID pCode)
                 {
                     pCode = *(LPVOID*)(addr);
                     result = FindRealCode(pCode);
-                    (void)VirtualProtect((LPVOID*)addr, sizeof(LPVOID), old_protect_2, &old_protect_2);
+                    if (VirtualProtect((LPVOID*)addr, sizeof(LPVOID), old_protect_2, &old_protect_2) == FALSE)
+                    {
+                        DbgTrace(L"FindRealCode: [5] VirtualProtect failed with %d\n", GetLastError());
+                    }
                 }
                 else
                 {
+                    DbgTrace(L"FindRealCode: [4] VirtualProtect failed with %d\n", GetLastError());
                     result = NULL;
                 }
 #endif
@@ -483,10 +491,14 @@ LPVOID FindRealCode(LPVOID pCode)
             }
 
             // restore the page protection state
-            (void)VirtualProtect(pCode, sizeof(ULONG_PTR) * 3, old_protect, &old_protect);
+            if (VirtualProtect(pCode, sizeof(ULONG_PTR) * 3, old_protect, &old_protect) == FALSE)
+            {
+                DbgTrace(L"FindRealCode: [6] VirtualProtect failed with %d\n", GetLastError());
+            }
         }
         else
         {
+            DbgTrace(L"FindRealCode: [1] VirtualProtect failed with %d\n", GetLastError());
             result = NULL;
         }
     }
